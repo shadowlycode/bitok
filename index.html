@@ -137,7 +137,7 @@
                 gap: 2px;
                 position: sticky;
                 top: max(20px, env(safe-area-inset-top));
-                z-index: 50;
+                z-index: 60;
                 margin: 10px 16px 14px;
                 flex-shrink: 0;
             }
@@ -183,17 +183,9 @@
                 transform: scale(0.9);
             }
 
-            /* ПРАВКА 1: на главной NAV становится плавающим поверх фото,
-               чтобы фото занимало ВЕСЬ экран без отступов сверху */
-            body.is-home .nav {
-                position: fixed;
-                top: max(14px, env(safe-area-inset-top));
-                left: 50%;
-                transform: translateX(-50%);
-                width: calc(100% - 32px);
-                max-width: 448px;
-                margin: 0 !important;
-            }
+            /* НОВАЯ ПРАВКА 1: на главной навбар такой же, как на остальных страницах
+               (убрали особое плавающее поведение). Навбар sticky сверху во всех
+               разделах. Поднимаем z-index, чтобы он был над фиксированной главной. */
 
             .section-wrap {
                 flex: 1;
@@ -1115,6 +1107,9 @@
             }
         </style>
         <style>
+            /* =====================================================================
+     ===================== DESKTOP VERSION ≥ 1024px ======================
+  ===================================================================== */
             @media (min-width: 1025px) {
                 body {
                     padding-bottom: 0;
@@ -1144,10 +1139,6 @@
                     gap: 4px;
                     border-radius: 60px;
                     box-shadow: 0 12px 40px rgba(29, 107, 243, 0.18);
-                }
-                body.is-home .nav {
-                    width: auto;
-                    max-width: 720px;
                 }
                 .nav-item {
                     flex-direction: row;
@@ -1319,13 +1310,7 @@
                 .sec-title {
                     font-size: 52px;
                 }
-                /* Заголовок "Наша команда" в одну строку */
-                #team .sec-title {
-                    margin-bottom: 14px;
-                }
-                #team .sec-title br {
-                    display: none;
-                }
+
                 #team .sec-lead {
                     font-size: 16px;
                     max-width: 640px;
@@ -1920,7 +1905,7 @@
                                 <circle cx="100" cy="100" r="2" fill="#1d6bf3" />
                             </g>
                         </svg>
-                        <h1 class="sec-title">Наша<br />команда</h1>
+                        <h1 class="sec-title">Наша команда</h1>
                         <p class="sec-lead">
                             Ниже представлены участники проекта, которые сопровождают обучение, помогают разобраться в
                             процессах и отвечают на вопросы участников.
@@ -2758,21 +2743,78 @@
                 if (e.key === 'Escape') closeModal();
             });
 
+            // НОВАЯ ПРАВКА 3: скачивание презентации.
+            // Файл лежит рядом с index.html в том же деплое на Vercel.
+            // Имя содержит кириллицу и точки, поэтому кодируем его.
+            const PRESENTATION_FILE = 'Презентация.pptx.pdf';
+
             function downloadPresentation() {
-                alert('Презентация будет загружена. Замените эту функцию на ссылку или обработчик скачивания файла.');
+                const url = '/' + encodeURIComponent(PRESENTATION_FILE);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = PRESENTATION_FILE;
+                a.target = '_blank';
+                a.rel = 'noopener';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
             }
 
-            function submitForm(e) {
+            const TG_BOT_TOKEN = '8615749533:AAEWNeKSLXVUGbD3pm0unQY82c-eiFBaQ5Q';
+            const TG_CHAT_ID = '-1003963168002';
+
+            async function submitForm(e) {
                 e.preventDefault();
                 const form = e.target;
-                console.log('Submitted:', {
-                    name: form.name.value,
-                    phone: form.phone.value,
-                    telegram: form.telegram.value,
-                });
-                document.getElementById('contact-form-wrap').style.display = 'none';
-                document.getElementById('contact-thanks').style.display = 'block';
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                const name = form.name.value.trim();
+                const phone = form.phone.value.trim();
+                const telegram = form.telegram.value.trim();
+
+                const submitBtn = form.querySelector('.submit-btn');
+                const prevText = submitBtn ? submitBtn.textContent : '';
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Отправка...';
+                }
+
+                const text =
+                    '🆕 Новая заявка с сайта\n\n' +
+                    '👤 Имя: ' +
+                    name +
+                    '\n' +
+                    '📞 Телефон: ' +
+                    phone +
+                    '\n' +
+                    '✈️ Telegram: ' +
+                    (telegram || '—');
+
+                try {
+                    const res = await fetch('https://api.telegram.org/bot' + TG_BOT_TOKEN + '/sendMessage', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            chat_id: TG_CHAT_ID,
+                            text: text,
+                            disable_web_page_preview: true,
+                        }),
+                    });
+                    const data = await res.json();
+                    if (!data.ok) {
+                        throw new Error(data.description || 'Telegram error');
+                    }
+                    document.getElementById('contact-form-wrap').style.display = 'none';
+                    document.getElementById('contact-thanks').style.display = 'block';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } catch (err) {
+                    console.error('Ошибка отправки заявки:', err);
+                    alert(
+                        'Не удалось отправить заявку. Проверьте, что бот добавлен в группу и является её участником, либо попробуйте ещё раз.',
+                    );
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = prevText;
+                    }
+                }
             }
 
             document.addEventListener('DOMContentLoaded', () => {
