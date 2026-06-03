@@ -2,7 +2,7 @@
 <html lang="ru">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
         <title>Онлайн-направление с обучением и практикой — Виктор Никитин</title>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -91,6 +91,12 @@
                 overflow-x: hidden;
             }
 
+            /* ПРАВКА 1: когда открыта главная — фон самой страницы = цвет фото,
+               чтобы на iPhone в Telegram сверху НЕ было белой/светлой полосы */
+            body.is-home {
+                background: var(--hero-bg-color);
+            }
+
             .bg-deco {
                 position: fixed;
                 inset: 0;
@@ -101,6 +107,10 @@
             .bg-deco svg {
                 position: absolute;
                 opacity: 0.1;
+            }
+            /* На главной декор прячем, чтобы не мешал фоновому фото на весь экран */
+            body.is-home .bg-deco {
+                display: none;
             }
 
             .app {
@@ -126,25 +136,11 @@
                 grid-template-columns: repeat(4, 1fr);
                 gap: 2px;
                 position: sticky;
-                top: 20px;
+                top: max(20px, env(safe-area-inset-top));
                 z-index: 50;
                 margin: 10px 16px 14px;
                 flex-shrink: 0;
             }
-            .app.home-active .nav {
-                margin: -100px 16px 14px !important;
-            }
-            @media (max-height: 740px) {
-                .app.home-active .nav {
-                    margin: -60px 16px 14px !important;
-                }
-            }
-            @media (max-height: 640px) {
-                .app.home-active .nav {
-                    margin: -50px 16px 14px !important;
-                }
-            }
-
             .nav-item {
                 background: none;
                 border: none;
@@ -187,6 +183,18 @@
                 transform: scale(0.9);
             }
 
+            /* ПРАВКА 1: на главной NAV становится плавающим поверх фото,
+               чтобы фото занимало ВЕСЬ экран без отступов сверху */
+            body.is-home .nav {
+                position: fixed;
+                top: max(14px, env(safe-area-inset-top));
+                left: 50%;
+                transform: translateX(-50%);
+                width: calc(100% - 32px);
+                max-width: 448px;
+                margin: 0 !important;
+            }
+
             .section-wrap {
                 flex: 1;
                 display: flex;
@@ -210,6 +218,22 @@
             #contact.active {
                 padding: 8px 16px;
             }
+            /* НОВАЯ ПРАВКА 2: на телефоне добавляем место снизу,
+               чтобы нижние пункты "О проекте" не перекрывались кнопкой
+               "Скачать презентацию проекта" */
+            #about.active {
+                padding-bottom: 110px;
+            }
+            /* НОВАЯ ПРАВКА 3: на телефоне страница "Записаться" по центру экрана,
+               а не прижата к верху */
+            #contact.active {
+                flex: 1;
+                justify-content: center;
+            }
+            #contact #contact-form-wrap,
+            #contact #contact-thanks {
+                width: 100%;
+            }
 
             @keyframes fadeIn {
                 from {
@@ -222,18 +246,32 @@
                 }
             }
 
-            /* ===== HERO (mobile base) ===== */
+            /* =====================================================================
+               ПРАВКА 1: HERO — фон ВСЕГДА на весь экран (телефон/планшет/десктоп)
+               Используем dvh/svh, фиксируем секцию на весь viewport, без отступов,
+               которые могли оставлять белую полосу.
+            ===================================================================== */
+            #home.active {
+                position: fixed;
+                inset: 0;
+                width: 100%;
+                height: 100vh;
+                height: 100dvh;
+                z-index: 1;
+            }
             .hero {
-                flex: 1;
                 position: relative;
+                width: 100%;
+                height: 100vh;
+                height: 100dvh;
                 overflow: hidden;
-                min-height: 0;
                 background-color: var(--hero-bg-color);
                 background-image: var(--hero-bg-image);
                 background-size: cover;
-                background-position: right center;
+                background-position: center top;
                 background-repeat: no-repeat;
-                padding: clamp(110px, 18vh, 170px) clamp(14px, 4.5vw, 22px) clamp(16px, 4vh, 28px);
+                padding: calc(env(safe-area-inset-top) + 140px) clamp(16px, 5vw, 24px)
+                    calc(env(safe-area-inset-bottom) + 96px);
                 display: flex;
                 flex-direction: column;
                 justify-content: flex-start;
@@ -278,7 +316,7 @@
             @media (max-width: 360px) {
                 .hero-content,
                 .hero-cards {
-                    max-width: 58%;
+                    max-width: 60%;
                 }
             }
 
@@ -371,15 +409,6 @@
             .hero-card-arrow {
                 color: var(--primary);
                 flex-shrink: 0;
-            }
-
-            @media (max-height: 640px) {
-                .hero {
-                    padding: 90px 14px 14px;
-                }
-                .hero-cards {
-                    margin-top: 18px;
-                }
             }
 
             /* ===== Other sections ===== */
@@ -543,31 +572,6 @@
                 height: 100%;
             }
 
-            .download-cta {
-                display: inline-flex;
-                align-items: center;
-                gap: 12px;
-                background: linear-gradient(180deg, var(--primary-2) 0%, var(--primary-dark) 100%);
-                color: #fff;
-                border: none;
-                border-radius: 16px;
-                padding: 14px 22px;
-                font-family: inherit;
-                font-size: 14px;
-                font-weight: 700;
-                cursor: pointer;
-                box-shadow: 0 8px 20px rgba(29, 107, 243, 0.3);
-                transition: transform 0.15s;
-                margin: 10px 0 18px;
-            }
-            .download-cta:active {
-                transform: scale(0.97);
-            }
-            .download-cta svg {
-                width: 20px;
-                height: 20px;
-            }
-
             .info-card {
                 background: var(--card);
                 border-radius: var(--radius);
@@ -710,17 +714,26 @@
             .form-hero {
                 position: relative;
                 padding: 8px 0 4px;
-                min-height: 200px;
             }
             .form-hero .sec-title {
-                max-width: 60%;
+                max-width: 70%;
             }
+            /* ПРАВКА 7: на мобильной иллюстрация НЕ перекрывает текст.
+               Делаем её фоновой, полупрозрачной и за текстом. */
             .form-hero .hero-illustration {
                 position: absolute;
-                right: -10px;
+                right: -30px;
                 top: 0;
-                width: 200px;
-                height: 220px;
+                width: 150px;
+                height: 165px;
+                opacity: 0.28;
+                z-index: 0;
+                pointer-events: none;
+            }
+            .form-hero .sec-title,
+            .form-hero .sec-lead {
+                position: relative;
+                z-index: 1;
             }
             .form-card {
                 background: var(--card);
@@ -730,7 +743,8 @@
                 margin-top: 12px;
                 border: 1px solid rgba(29, 107, 243, 0.06);
             }
-            .form-field {
+            /* ПРАВКА 8: поле = label, клик по любой части открывает клавиатуру */
+            label.form-field {
                 display: flex;
                 align-items: center;
                 gap: 14px;
@@ -739,11 +753,12 @@
                 border-radius: 16px;
                 padding: 12px 14px;
                 margin-bottom: 10px;
+                cursor: text;
                 transition:
                     border-color 0.2s,
                     background 0.2s;
             }
-            .form-field:focus-within {
+            label.form-field:focus-within {
                 border-color: var(--primary);
                 background: #fff;
             }
@@ -757,6 +772,7 @@
                 justify-content: center;
                 color: var(--primary);
                 flex-shrink: 0;
+                pointer-events: none;
             }
             .form-field-input {
                 flex: 1;
@@ -767,6 +783,7 @@
                 font-weight: 700;
                 color: var(--text);
                 margin-bottom: 2px;
+                pointer-events: none;
             }
             .form-field-input input {
                 width: 100%;
@@ -856,7 +873,7 @@
                 left: 0;
                 right: 0;
                 z-index: 40;
-                padding: 10px 16px 16px;
+                padding: 10px 16px calc(16px + env(safe-area-inset-bottom));
                 background: linear-gradient(180deg, rgba(234, 242, 251, 0) 0%, rgba(234, 242, 251, 0.95) 30%);
                 pointer-events: none;
                 transition: opacity 0.3s ease;
@@ -864,10 +881,13 @@
             .sticky-bottom > * {
                 pointer-events: auto;
             }
-
-            /* ПРАВКА 2 (мобільна частина): на головній — прозорий фон без білої смуги */
+            /* На главной — прозрачный фон без белой полосы */
             body.is-home .sticky-bottom {
                 background: transparent;
+            }
+            /* На странице "Записаться" прячем нижнюю кнопку — не нужна и создаёт скролл */
+            body.is-contact .sticky-bottom {
+                display: none;
             }
 
             .download-btn {
@@ -900,7 +920,9 @@
                 height: 22px;
             }
 
-            /* ===== MODAL ===== */
+            /* =====================================================================
+               ПРАВКА 2: MODAL — делаем модалки на главной МЕНЬШЕ
+            ===================================================================== */
             .modal-overlay {
                 position: fixed;
                 inset: 0;
@@ -925,9 +947,9 @@
             .modal {
                 background: var(--card);
                 width: 100%;
-                max-width: 440px;
-                max-height: 86vh;
-                border-radius: 28px;
+                max-width: 360px; /* было 440px */
+                max-height: 78vh; /* было 86vh */
+                border-radius: 22px; /* было 28px */
                 padding: 0;
                 box-shadow: 0 24px 60px rgba(15, 28, 51, 0.3);
                 transform: scale(0.88) translateY(16px);
@@ -949,10 +971,10 @@
             }
             .modal-close {
                 position: absolute;
-                top: 16px;
-                right: 16px;
-                width: 36px;
-                height: 36px;
+                top: 14px;
+                right: 14px;
+                width: 32px;
+                height: 32px;
                 background: var(--primary-softer);
                 border: none;
                 border-radius: 50%;
@@ -971,78 +993,78 @@
                 background: var(--primary-soft);
             }
             .modal-close svg {
-                width: 18px;
-                height: 18px;
+                width: 16px;
+                height: 16px;
             }
             .modal-content {
                 overflow-y: auto;
-                padding: 8px 22px 24px;
+                padding: 6px 18px 18px; /* компактнее */
                 flex: 1;
                 -webkit-overflow-scrolling: touch;
             }
             .modal-icon-wrap {
-                width: 72px;
-                height: 72px;
+                width: 56px; /* было 72px */
+                height: 56px;
                 background: linear-gradient(135deg, var(--primary-soft) 0%, #d6e6fb 100%);
-                border-radius: 22px;
+                border-radius: 18px;
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 color: var(--primary);
-                margin: 18px 0 16px;
+                margin: 14px 0 12px;
                 box-shadow: 0 6px 18px rgba(29, 107, 243, 0.18);
             }
             .modal-icon-wrap svg {
-                width: 36px;
-                height: 36px;
+                width: 28px; /* было 36px */
+                height: 28px;
             }
             .modal-title {
-                font-size: 26px;
+                font-size: 20px; /* было 26px */
                 font-weight: 900;
-                line-height: 1.05;
+                line-height: 1.08;
                 letter-spacing: -0.02em;
-                margin: 0 0 16px;
+                margin: 0 0 12px;
                 color: var(--text);
-                max-width: 90%;
+                max-width: 92%;
             }
             .modal-text {
-                font-size: 14px;
-                line-height: 1.55;
+                font-size: 12.5px; /* было 14px */
+                line-height: 1.5;
                 color: var(--text-2);
-                margin: 0 0 14px;
+                margin: 0 0 10px;
             }
             .modal-divider {
                 height: 1px;
                 background: linear-gradient(90deg, transparent 0%, var(--line) 50%, transparent 100%);
-                margin: 18px 0;
+                margin: 14px 0;
             }
             .modal-sub-title {
-                font-size: 13px;
+                font-size: 11.5px;
                 font-weight: 700;
                 color: var(--primary);
                 text-transform: uppercase;
                 letter-spacing: 0.05em;
-                margin: 6px 0 12px;
+                margin: 4px 0 10px;
             }
             .modal-actions {
                 display: flex;
                 flex-direction: column;
-                gap: 10px;
-                margin-top: 8px;
+                gap: 8px;
+                margin-top: 6px;
             }
             .modal-pill-btn {
                 background: var(--primary-softer);
                 color: var(--text);
                 border: 1px solid rgba(29, 107, 243, 0.12);
-                border-radius: 16px;
-                padding: 14px 16px;
+                border-radius: 14px;
+                padding: 12px 14px; /* компактнее */
                 font-family: inherit;
-                font-size: 14px;
+                font-size: 13px;
                 font-weight: 700;
                 text-align: left;
                 display: flex;
                 align-items: center;
-                gap: 12px;
+                gap: 10px;
                 cursor: pointer;
                 width: 100%;
                 transition:
@@ -1055,7 +1077,7 @@
                 background: var(--primary-soft);
             }
             .modal-pill-btn .emoji {
-                font-size: 18px;
+                font-size: 16px;
                 flex-shrink: 0;
             }
             .modal-pill-btn .label {
@@ -1088,14 +1110,12 @@
 
             @media (max-width: 380px) {
                 .modal-title {
-                    font-size: 22px;
+                    font-size: 18px;
                 }
             }
-
-            /* =====================================================================
-     ===================== DESKTOP VERSION ≥ 1024px ======================
-  ===================================================================== */
-            @media (min-width: 1024px) {
+        </style>
+        <style>
+            @media (min-width: 1025px) {
                 body {
                     padding-bottom: 0;
                 }
@@ -1125,8 +1145,9 @@
                     border-radius: 60px;
                     box-shadow: 0 12px 40px rgba(29, 107, 243, 0.18);
                 }
-                .app.home-active .nav {
-                    margin: 0 !important;
+                body.is-home .nav {
+                    width: auto;
+                    max-width: 720px;
                 }
                 .nav-item {
                     flex-direction: row;
@@ -1151,22 +1172,31 @@
                     padding: 0;
                 }
 
-                #team.active,
-                #about.active,
-                #contact.active {
+                #team.active {
                     padding: 100px 0 80px;
+                }
+                /* НОВАЯ ПРАВКА 1: меньше отступ сверху над заголовком "О проекте" */
+                #about.active {
+                    padding: 76px 0 80px;
+                }
+                /* ПРАВКА 6: contact без верх/низ скролла, вписываем в экран */
+                #contact.active {
+                    padding: 0;
                 }
 
                 /* ===========================================================
-       ПРАВКА 1 + 2: HERO на весь екран без скролу
-       - Виставляємо точну висоту 100vh
-       - Фон гарантовано покриває весь екран
-       - Контент завжди ліворуч і вміщається у viewport
+       ПРАВКА 1: HERO на весь экран без скролла на десктопе
     =========================================================== */
+                #home.active {
+                    position: fixed;
+                    inset: 0;
+                    height: 100vh;
+                    height: 100dvh;
+                }
                 .hero {
                     height: 100vh;
+                    height: 100dvh;
                     min-height: 100vh;
-                    max-height: 100vh;
                     width: 100%;
                     background-image: var(--hero-bg-image-desktop, var(--hero-bg-image));
                     background-position: right center;
@@ -1179,7 +1209,6 @@
                     align-items: stretch;
                     overflow: hidden;
                 }
-                /* Лівий градієнт сильніший для читабельності */
                 .hero::before {
                     background: linear-gradient(
                         to right,
@@ -1198,21 +1227,17 @@
                     z-index: 2;
                 }
 
-                /* Контент завжди ліворуч, обмежений по ширині, не на повний ряд */
                 .hero-content {
                     max-width: 1200px;
                     width: 100%;
                     margin: 0 auto;
                     padding: 0 40px;
-                    /* Текст ліворуч, обмежуємо ширину параграфів */
                     align-self: center;
                 }
-                /* Параграфи всередині — ліворуч і обмежені, щоб не йшли поверх моделі */
                 .hero-content > * {
                     max-width: 540px;
                     text-align: left;
                 }
-                /* Менший шрифт, щоб все вмістилось без скролу */
                 .hero-title {
                     font-size: clamp(40px, 4.2vw, 56px);
                     line-height: 1;
@@ -1227,7 +1252,6 @@
                     max-width: 440px;
                 }
 
-                /* Картки — у ряд, прив'язані до того ж контейнера, ліворуч */
                 .hero-cards {
                     max-width: 1200px;
                     width: 100%;
@@ -1262,7 +1286,6 @@
                     box-shadow: 0 14px 36px rgba(29, 107, 243, 0.22);
                 }
 
-                /* На дуже невисоких десктопах ще трохи стискаємо */
                 @media (max-height: 720px) {
                     .hero-title {
                         font-size: 36px;
@@ -1284,55 +1307,69 @@
                     }
                 }
 
-                /* ============== TEAM ============== */
+                /* =================================================================
+       ПРАВКА 3: TEAM — комфортный десктоп, заголовок в одну строку
+    ================================================================= */
                 #team .sec-header {
                     max-width: 1200px;
                     margin: 0 auto;
                     padding: 0 40px 32px;
+                    text-align: center;
                 }
                 .sec-title {
-                    font-size: 56px;
+                    font-size: 52px;
                 }
-                .sec-lead {
-                    font-size: 17px;
-                    max-width: 600px;
+                /* Заголовок "Наша команда" в одну строку */
+                #team .sec-title {
+                    margin-bottom: 14px;
+                }
+                #team .sec-title br {
+                    display: none;
+                }
+                #team .sec-lead {
+                    font-size: 16px;
+                    max-width: 640px;
+                    margin: 0 auto;
                 }
                 .sec-deco-btc {
-                    width: 200px;
-                    height: 200px;
-                    right: 40px;
-                    top: -30px;
+                    display: none; /* убираем съезжающий декор, чтобы заголовок был ровно по центру */
                 }
 
                 #team {
                     position: relative;
                 }
                 #team .team-card-grid {
-                    max-width: 1200px;
+                    max-width: 1180px;
                     margin: 0 auto;
                     padding: 0 40px;
                     display: grid;
                     grid-template-columns: repeat(3, 1fr);
                     gap: 24px;
+                    align-items: stretch;
                 }
                 .team-card {
                     grid-template-columns: 1fr;
-                    grid-template-rows: 320px auto;
+                    grid-template-rows: 300px 1fr;
                     margin-bottom: 0;
                     border-radius: 24px;
                     overflow: hidden;
+                    height: 100%;
                 }
                 .team-card > .team-photo {
                     order: -1;
                 }
                 .team-photo {
-                    min-height: 320px;
+                    min-height: 300px;
                 }
                 .team-info {
                     padding: 24px;
                 }
                 .team-name {
                     font-size: 22px;
+                }
+                /* В карточках имя в одну строку на десктопе для аккуратности */
+                .team-name br {
+                    display: none;
                 }
                 .team-role {
                     font-size: 12px;
@@ -1354,150 +1391,140 @@
                 }
 
                 /* =================================================================
-       ПРАВКА 3: ABOUT — структурний дводолбний/мозаїчний лейаут
+       ПРАВКА 4: ABOUT — аккуратный, не разбросанный лейаут
     ================================================================= */
-                #about {
-                    /* Скидаємо стрічковий лейаут */
-                }
                 #about > * {
-                    max-width: 1200px;
+                    max-width: 1180px;
                     margin-left: auto;
                     margin-right: auto;
-                    padding-left: 40px;
+                    padding-left: 80px;
                     padding-right: 40px;
                 }
 
-                /* Hero секції "О проекте" — 2 колонки: текст + кнопка ліворуч, ілюстрація праворуч */
                 .about-hero {
                     min-height: 0;
-                    padding: 0 0 32px;
+                    padding: 0 0 20px;
                     display: grid;
-                    grid-template-columns: 1.2fr 1fr;
-                    gap: 40px;
+                    grid-template-columns: 1.15fr 0.85fr;
+                    gap: 32px;
                     align-items: center;
+                    text-align: left;
                 }
                 .about-hero .hero-illustration {
                     position: static;
                     width: 100%;
-                    max-width: 420px;
-                    height: 360px;
+                    max-width: 300px;
+                    height: 240px;
                     justify-self: end;
                 }
                 .about-hero .sec-title {
                     max-width: 100%;
-                    font-size: 56px;
+                    font-size: 48px;
+                    margin-bottom: 14px;
                 }
                 .about-hero .sec-lead {
                     max-width: 100%;
-                    font-size: 17px;
-                    margin-bottom: 24px;
+                    font-size: 16px;
+                    margin-bottom: 0;
                 }
-                /* CTA-кнопка тут же, у лівій колонці */
                 .about-hero-left {
                     grid-column: 1;
                 }
-                .about-hero-left .download-cta {
-                    margin: 24px 0 0;
-                    padding: 18px 32px;
-                    font-size: 16px;
-                    border-radius: 18px;
-                }
 
-                /* Прибираємо стару окрему .download-cta що йшла поза hero */
-                #about > .download-cta {
-                    display: none;
-                }
-
-                /* Сітка info-карток: 2 колонки. Перша картка — велика, далі — менші */
+                /* Сетка карточек: 2 колонки, выровнены по высоте */
                 #about .about-grid {
-                    max-width: 1200px;
+                    max-width: 1180px;
                     margin: 0 auto;
                     padding: 0 40px;
                     display: grid;
                     grid-template-columns: 1fr 1fr;
                     gap: 24px;
+                    align-items: stretch;
                 }
                 #about .about-grid .info-card {
                     margin-bottom: 0;
+                    height: 100%;
                 }
-                /* Перша картка — на всю ширину (Що це за направлення?) */
                 #about .about-grid .info-card.full {
                     grid-column: 1 / -1;
                 }
 
                 .info-card {
-                    padding: 32px 36px;
-                    border-radius: 28px;
+                    padding: 28px 32px;
+                    border-radius: 24px;
                 }
                 .info-card-header {
-                    margin-bottom: 18px;
-                    gap: 18px;
+                    margin-bottom: 16px;
+                    gap: 16px;
                 }
                 .info-card-icon {
-                    width: 64px;
-                    height: 64px;
+                    width: 46px;
+                    height: 46px;
                 }
                 .info-card-icon svg {
-                    width: 32px;
-                    height: 32px;
+                    width: 24px;
+                    height: 24px;
                 }
                 .info-card-title {
-                    font-size: 24px;
+                    font-size: 22px;
+                }
+                .info-card-title br {
+                    display: none;
                 }
                 .info-card-text {
-                    font-size: 15px;
-                    max-width: 800px;
+                    font-size: 14.5px;
+                    max-width: 760px;
                 }
 
                 .feature-grid {
-                    gap: 16px;
-                    margin-top: 18px;
+                    gap: 14px;
+                    margin-top: 16px;
                 }
                 .feature-item {
-                    padding: 16px 10px;
+                    padding: 14px 10px;
                     background: var(--primary-softer);
                     border-radius: 16px;
                 }
                 .feature-item-icon {
-                    width: 48px;
-                    height: 48px;
-                    margin-bottom: 10px;
+                    width: 44px;
+                    height: 44px;
+                    margin-bottom: 8px;
                 }
                 .feature-item-label {
-                    font-size: 13px;
+                    font-size: 12.5px;
                     font-weight: 700;
                     color: var(--text);
                 }
 
                 .steps-row {
                     gap: 14px;
-                    margin-top: 18px;
+                    margin-top: 16px;
                 }
                 .steps-row::before {
-                    top: 20px;
+                    top: 18px;
                 }
                 .step-num {
-                    width: 40px;
-                    height: 40px;
-                    font-size: 17px;
-                    margin-bottom: 14px;
+                    width: 38px;
+                    height: 38px;
+                    font-size: 16px;
+                    margin-bottom: 12px;
                 }
                 .step-icon {
-                    width: 36px;
-                    height: 36px;
-                    margin-bottom: 8px;
+                    width: 34px;
+                    height: 34px;
+                    margin-bottom: 7px;
                 }
                 .step-title {
-                    font-size: 14px;
-                    margin-bottom: 5px;
+                    font-size: 13.5px;
+                    margin-bottom: 4px;
                 }
                 .step-text {
-                    font-size: 12px;
+                    font-size: 11.5px;
                 }
 
                 .support-grid {
-                    gap: 16px;
-                    margin-top: 14px;
+                    gap: 14px;
+                    margin-top: 12px;
                 }
                 .support-item {
                     padding: 16px;
@@ -1505,31 +1532,35 @@
                     border-radius: 16px;
                 }
                 .support-item-icon {
-                    width: 44px;
-                    height: 44px;
-                    margin-bottom: 10px;
+                    width: 42px;
+                    height: 42px;
+                    margin-bottom: 8px;
                 }
                 .support-item-label {
-                    font-size: 13px;
+                    font-size: 12.5px;
                 }
 
                 /* =================================================================
-       ПРАВКА 3: CONTACT — текст ліворуч, форма праворуч
+       ПРАВКА 6: CONTACT — без вертикального скролла, всё в один экран
     ================================================================= */
-                #contact {
-                    align-items: stretch;
+                #contact.active {
+                    height: 100vh;
+                    height: 100dvh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    overflow: hidden;
                 }
                 #contact-form-wrap {
-                    max-width: 1200px;
+                    max-width: 1100px;
                     width: 100%;
                     margin: 0 auto;
                     padding: 0 40px;
                     display: grid;
                     grid-template-columns: 1fr 1fr;
-                    gap: 56px;
+                    gap: 48px;
                     align-items: center;
                 }
-                /* Лівий блок: заголовок, опис, ілюстрація під ними */
                 .form-hero {
                     min-height: 0;
                     padding: 0;
@@ -1538,36 +1569,36 @@
                 }
                 .form-hero .sec-title {
                     max-width: 100%;
-                    font-size: clamp(40px, 4vw, 56px);
+                    font-size: clamp(36px, 3.4vw, 48px);
                 }
                 .form-hero .sec-lead {
-                    font-size: 17px;
-                    margin-bottom: 24px;
-                    max-width: 460px;
+                    font-size: 16px;
+                    margin-bottom: 20px;
+                    max-width: 420px;
                 }
                 .form-hero .hero-illustration {
                     position: static;
                     width: 100%;
-                    max-width: 360px;
-                    height: 320px;
-                    margin-top: 12px;
+                    max-width: 300px;
+                    height: 260px;
+                    margin-top: 8px;
+                    opacity: 1;
                 }
-                /* Форма — права колонка */
                 .form-card {
                     grid-column: 2;
                     margin-top: 0;
-                    padding: 36px;
-                    border-radius: 28px;
+                    padding: 30px;
+                    border-radius: 24px;
                     max-width: 100%;
                 }
-                .form-field {
-                    padding: 14px 18px;
+                label.form-field {
+                    padding: 13px 18px;
                     border-radius: 16px;
-                    margin-bottom: 12px;
+                    margin-bottom: 11px;
                 }
                 .form-field-icon {
-                    width: 44px;
-                    height: 44px;
+                    width: 42px;
+                    height: 42px;
                 }
                 .form-field-icon svg {
                     width: 20px;
@@ -1580,14 +1611,14 @@
                     font-size: 14px;
                 }
                 .submit-btn {
-                    padding: 18px;
-                    font-size: 16px;
+                    padding: 16px;
+                    font-size: 15px;
                     border-radius: 18px;
                 }
                 .privacy-note {
-                    padding: 13px 16px;
-                    font-size: 12.5px;
-                    margin-top: 14px;
+                    padding: 12px 16px;
+                    font-size: 12px;
+                    margin-top: 12px;
                 }
 
                 /* ============== STICKY DOWNLOAD ============== */
@@ -1601,50 +1632,49 @@
                     font-size: 15px;
                     border-radius: 22px;
                 }
-                /* На головній — прозорий, без білої смуги */
                 body.is-home .sticky-bottom {
                     background: transparent;
                 }
 
-                /* ============== MODAL desktop ============== */
+                /* ============== MODAL desktop (тоже компактнее) ============== */
                 .modal {
-                    max-width: 560px;
+                    max-width: 460px;
                 }
                 .modal-content {
-                    padding: 12px 40px 36px;
+                    padding: 10px 30px 28px;
                 }
                 .modal-icon-wrap {
-                    width: 88px;
-                    height: 88px;
-                    border-radius: 24px;
-                    margin: 24px 0 20px;
+                    width: 68px;
+                    height: 68px;
+                    border-radius: 20px;
+                    margin: 20px 0 16px;
                 }
                 .modal-icon-wrap svg {
-                    width: 44px;
-                    height: 44px;
+                    width: 34px;
+                    height: 34px;
                 }
                 .modal-title {
-                    font-size: 36px;
-                    margin-bottom: 20px;
+                    font-size: 28px;
+                    margin-bottom: 16px;
                 }
                 .modal-text {
-                    font-size: 16px;
-                    line-height: 1.6;
+                    font-size: 14.5px;
+                    line-height: 1.55;
                 }
                 .modal-pill-btn {
-                    padding: 18px 22px;
-                    font-size: 15px;
-                    border-radius: 18px;
+                    padding: 14px 18px;
+                    font-size: 14px;
+                    border-radius: 16px;
                 }
                 .modal-close {
-                    width: 44px;
-                    height: 44px;
-                    top: 20px;
-                    right: 20px;
+                    width: 38px;
+                    height: 38px;
+                    top: 16px;
+                    right: 16px;
                 }
                 .modal-close svg {
-                    width: 22px;
-                    height: 22px;
+                    width: 18px;
+                    height: 18px;
                 }
             }
 
@@ -1657,10 +1687,10 @@
                 #about > *,
                 #about .about-grid,
                 #contact-form-wrap {
-                    max-width: 1320px;
+                    max-width: 1280px;
                 }
                 .sec-title {
-                    font-size: 64px;
+                    font-size: 60px;
                 }
             }
         </style>
@@ -2049,7 +2079,7 @@
 
                 <!-- ==================== ABOUT ==================== -->
                 <section class="section" id="about">
-                    <!-- Hero "О проекте": 2 колонки (текст+CTA ліворуч, ілюстрація праворуч) на десктопі -->
+                    <!-- ПРАВКА 5: кнопка "Скачать презентацию" удалена из "О проекте" -->
                     <div class="about-hero">
                         <div class="about-hero-left">
                             <h1 class="sec-title">О проекте</h1>
@@ -2057,21 +2087,6 @@
                                 Мы помогаем людям освоить современные онлайн-направления, получить навыки и уверенно
                                 применять их на практике.
                             </p>
-                            <button class="download-cta" onclick="downloadPresentation()">
-                                <svg
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2.5"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                >
-                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                    <polyline points="7 10 12 15 17 10" />
-                                    <line x1="12" y1="15" x2="12" y2="3" />
-                                </svg>
-                                Скачать презентацию
-                            </button>
                         </div>
                         <div class="hero-illustration">
                             <svg viewBox="0 0 200 220" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -2134,24 +2149,6 @@
                         </div>
                     </div>
 
-                    <!-- Mobile-only standalone CTA (на десктопі ховається — він є всередині about-hero-left) -->
-                    <button class="download-cta about-mobile-cta" onclick="downloadPresentation()">
-                        <svg
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2.5"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                        >
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                            <polyline points="7 10 12 15 17 10" />
-                            <line x1="12" y1="15" x2="12" y2="3" />
-                        </svg>
-                        Скачать презентацию
-                    </button>
-
-                    <!-- 2-колонкова сітка карток на десктопі (на мобільному — стовпчик через media query) -->
                     <div class="about-grid">
                         <div class="info-card full">
                             <div class="info-card-header">
@@ -2468,7 +2465,6 @@
                 <!-- ==================== CONTACT ==================== -->
                 <section class="section" id="contact">
                     <div id="contact-form-wrap">
-                        <!-- Лівий блок: заголовок + опис + ілюстрація -->
                         <div class="form-hero">
                             <h1 class="sec-title">Получить<br />подробную<br />информацию</h1>
                             <p class="sec-lead">Оставьте контактные данные для связи с вами.</p>
@@ -2502,10 +2498,10 @@
                             </div>
                         </div>
 
-                        <!-- Права колонка: форма -->
                         <div class="form-card">
                             <form id="contact-form" onsubmit="submitForm(event)">
-                                <div class="form-field">
+                                <!-- ПРАВКА 8: form-field теперь label — клик по любой части фокусирует input -->
+                                <label class="form-field">
                                     <div class="form-field-icon">
                                         <svg
                                             width="20"
@@ -2525,8 +2521,8 @@
                                         <div class="form-field-label">Имя</div>
                                         <input type="text" name="name" placeholder="Введите ваше имя" required />
                                     </div>
-                                </div>
-                                <div class="form-field">
+                                </label>
+                                <label class="form-field">
                                     <div class="form-field-icon">
                                         <svg
                                             width="20"
@@ -2547,8 +2543,8 @@
                                         <div class="form-field-label">Телефон</div>
                                         <input type="tel" name="phone" placeholder="Введите номер телефона" required />
                                     </div>
-                                </div>
-                                <div class="form-field">
+                                </label>
+                                <label class="form-field">
                                     <div class="form-field-icon">
                                         <svg
                                             width="20"
@@ -2572,7 +2568,7 @@
                                             placeholder="Введите ваш username (необязательно)"
                                         />
                                     </div>
-                                </div>
+                                </label>
                                 <button type="submit" class="submit-btn">Получить информацию</button>
                                 <div class="privacy-note">
                                     <svg
@@ -2641,7 +2637,7 @@
             </div>
         </div>
 
-        <!-- STICKY DOWNLOAD (на головній — приховуємо текст через body.is-home; кнопка все ще видна) -->
+        <!-- STICKY DOWNLOAD -->
         <div class="sticky-bottom" id="sticky-bottom">
             <button class="download-btn" onclick="downloadPresentation()">
                 <svg
@@ -2660,31 +2656,6 @@
                 Скачать презентацию проекта
             </button>
         </div>
-
-        <style>
-            /* Standalone CTA в About (mobile only) */
-            @media (min-width: 1024px) {
-                .about-mobile-cta {
-                    display: none !important;
-                }
-            }
-            @media (max-width: 1023px) {
-                .about-hero-left .download-cta {
-                    display: none;
-                }
-                .about-grid {
-                    display: block;
-                }
-                .about-grid .info-card {
-                    margin-bottom: 14px;
-                }
-            }
-
-            /* ПРАВКА 2: На головній на десктопі sticky-bottom повністю прозорий — без білої смуги */
-            body.is-home.is-desktop .sticky-bottom {
-                background: transparent !important;
-            }
-        </style>
 
         <script>
             const CARDS = {
@@ -2734,31 +2705,14 @@
                 sections.forEach((s) => s.classList.toggle('active', s.id === id));
                 navItems.forEach((n) => n.classList.toggle('active', n.dataset.section === id));
 
-                const app = document.querySelector('.app');
-                if (id === 'home') {
-                    app.classList.add('home-active');
-                    document.body.classList.add('is-home');
-                } else {
-                    app.classList.remove('home-active');
-                    document.body.classList.remove('is-home');
-                }
+                document.body.classList.toggle('is-home', id === 'home');
+                document.body.classList.toggle('is-contact', id === 'contact');
 
                 closeModal();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
 
             navItems.forEach((n) => n.addEventListener('click', () => setSection(n.dataset.section)));
-
-            /* Відстежуємо чи десктоп */
-            function trackBreakpoint() {
-                if (window.matchMedia('(min-width: 1024px)').matches) {
-                    document.body.classList.add('is-desktop');
-                } else {
-                    document.body.classList.remove('is-desktop');
-                }
-            }
-            window.addEventListener('resize', trackBreakpoint);
-            trackBreakpoint();
 
             const modalEl = document.getElementById('modal');
             const modalContent = document.getElementById('modal-content');
@@ -2822,9 +2776,7 @@
             }
 
             document.addEventListener('DOMContentLoaded', () => {
-                const app = document.querySelector('.app');
                 if (document.getElementById('home').classList.contains('active')) {
-                    app.classList.add('home-active');
                     document.body.classList.add('is-home');
                 }
             });
