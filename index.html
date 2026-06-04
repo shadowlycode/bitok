@@ -2744,6 +2744,22 @@
                 }
             }
 
+            (function () {
+                const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent);
+                if (!isIOS) return;
+                const vp = document.querySelector('meta[name="viewport"]');
+                const lock =
+                    'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover';
+                const release = 'width=device-width, initial-scale=1, viewport-fit=cover';
+                document.addEventListener('focusin', (e) => {
+                    if (e.target.matches('input, textarea')) vp.setAttribute('content', lock);
+                });
+                document.addEventListener('focusout', () => {
+                    vp.setAttribute('content', release);
+                    setTimeout(() => vp.setAttribute('content', lock), 300);
+                });
+            })();
+
             document.addEventListener('DOMContentLoaded', () => {
                 if (document.getElementById('home').classList.contains('active')) {
                     document.body.classList.add('is-home');
